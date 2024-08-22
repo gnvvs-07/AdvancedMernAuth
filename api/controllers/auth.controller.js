@@ -2,6 +2,7 @@ import { User } from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 import generateVerificationToken from "../utils/generateVerificationToken.js";
 import generateTokenAndSetCookie from "../utils/generateTokenAndSetCookie.js";
+import { sendVerificationEmail } from "../mailtrap/emails.js";
 // authentication functionalities
 export const signup = async (req, res) => {
   const { email, password, name } = req.body;
@@ -29,17 +30,19 @@ export const signup = async (req, res) => {
     });
     // add the user to db
     await user.save();
-    // token
+    // token generator
     generateTokenAndSetCookie(res, user._id);
+    // sending verification token to user via mailtrap
+    await sendVerificationEmail(user.email, verificationToken);
     // response
     res.status(201).json({
-      success:true,
-      message:"User creation completed",
-      user:{
+      success: true,
+      message: "User creation completed",
+      user: {
         ...user._doc,
-        password:undefined,
-      }
-    })
+        password: undefined,
+      },
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
