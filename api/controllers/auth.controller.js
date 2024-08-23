@@ -75,15 +75,22 @@ export const verifyEmail = async (req, res) => {
     await sendWelcomeEmail(user.email, user.name);
     res.status(200).json({
       success: true,
-      message:"Email verification success",
-      user:{
+      message: "Email verification success",
+      user: {
         ...user._doc,
-        password:undefined
-      }
-    })
+        password: undefined,
+      },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to verify email" });
   }
 };
 export const login = async (req, res) => {};
-export const logout = async (req, res) => {};
+export const logout = async (req, res) => {
+  // logic: remove the token from the user
+  res.clearCookie("token");
+  res.status(200).json({
+    success: true,
+    message: "User log-out successfull",
+  });
+};
