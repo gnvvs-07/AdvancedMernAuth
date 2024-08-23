@@ -1,8 +1,13 @@
 import { User } from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
+import crypto from "crypto";
 import generateVerificationToken from "../utils/generateVerificationToken.js";
 import generateTokenAndSetCookie from "../utils/generateTokenAndSetCookie.js";
-import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails.js";
+import {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+} from "../mailtrap/emails.js";
 // authentication functionalities
 export const signup = async (req, res) => {
   const { email, password, name } = req.body;
@@ -101,12 +106,10 @@ export const login = async (req, res) => {
     const isPasswordValid = await bcryptjs.compare(password, user.password);
     // if incorrect password
     if (!isPasswordValid) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Incorrect password and email combination",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect password and email combination",
+      });
     }
     // generate the token
     generateTokenAndSetCookie(res, user._id);
@@ -135,4 +138,38 @@ export const logout = async (req, res) => {
     success: true,
     message: "User log-out successfull",
   });
+};
+export const forgotPassword = async (req, res) => {
+  // functionality::forgot password reset link emailing to user
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User does not exist",
+      });
+    }
+    // generate a token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    // set timer for token expiring
+    const resetTokenExpiresAt = Date.now() + 10 * 60 * 1000; // for 10 seconds
+    // update user reset token and expires at
+    user.resetToken = resetToken;
+    user.resetPasswordExpiresAt = resetTokenExpiresAt;
+    // save the user
+    await user.save();
+    // send link to reset password
+    await sendPasswordResetEmail(
+      user.email,
+      `${process.env.CLIENT_URL}/reset-password/${resetToken}`
+    );
+    res.status(200).json({
+      success: true,
+      message: "Password reset link is send to your mail",
+    });
+  } catch (error) {
+    console.log("Error in reset password");
+    throw new Error("Error in updating password when clicked forgot password");
+  }
 };
