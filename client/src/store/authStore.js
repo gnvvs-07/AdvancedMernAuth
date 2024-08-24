@@ -33,4 +33,23 @@ export const useAuthStore = create((set) => ({
       throw error;
     }
   },
+  //   verify OTP
+  verifyEmail: async (code) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post("/api/auth/verify-email", { code });
+      set({
+        user: response.data.user,
+        isAuthentication: true,
+        isLoading: false,
+      });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response.data.message || "Error in signin up",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
 }));

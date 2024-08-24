@@ -4,6 +4,7 @@ import FloatingShape from "./components/FloatingShape";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
+import { Toaster } from "react-hot-toast";
 export default function App() {
   return (
     <div
@@ -35,8 +36,9 @@ export default function App() {
         <Route path="/" element={"Home"} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/verify-email" element={<EmailVerificationPage/>}/>
+        <Route path="/verify-email" element={<EmailVerificationPage />} />
       </Routes>
+      <Toaster />
     </div>
   );
 }
